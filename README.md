@@ -1,2 +1,2 @@
 # dataJournalism
-I am exploring potential data journalism articles.
+I am exploring data journalism article ideas.
