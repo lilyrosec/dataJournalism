@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+author: "Lily-Rose"
+date: "2024-09-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+
+noise_data <- read.csv("~/Downloads/INF002684 FOI002773.csv") %>%
+  select(type = Type, datetime = Received.Date.and.Time) %>%
+  mutate(datetime = as.POSIXct(datetime, format = "%d/%m/%Y %H:%M:%S"),
+         day = yday(datetime),
+         month = month(datetime),
+         hour = hour(datetime),
+         type = ifelse(type == "Noise - Construction", "Construction", type),
+         type = ifelse(type == "Noise - parties", "Party", type)) %>%
+  filter(!type %in% c("", "Other", "Noise - Other"))
+```
+
+### Top noise complaint categories in 2023
+
+```{r}
+noise_data %>%
+  count(type, sort = TRUE) %>%
+  filter(n > 12) %>%
+  arrange(n) %>%
+  ggplot(aes(reorder(type, n), y = n)) +
+  coord_flip() +
+  geom_col() +
+  labs(title = "Top noise categories", x = "", y = "Complaint volume")
+```
+
+### Noise complaint variability over 2023
+
+```{r}
+noise_data %>%
+  add_count(type) %>%
+  filter(n > 60) %>%
+  ungroup() %>%
+  count(type, month) %>%
+  ggplot(aes(month, n, colour = type)) +
+  geom_line() +
+  labs(title = "Noise variability over year", x = "Month", y = "Complaint volume")
+```
+
+### What times were noise complaints made
+
+```{r}
+noise_data %>%
+  mutate(type = fct_lump(type, 5)) %>%
+  add_count(hour)%>%
+  ggplot(aes(hour,n,fill = type)) +
+  geom_col() +
+  labs(title = "Noise data by hour", x = "Hour", y = "Complaint volume")
+```
+
+
